@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INNOVATION 2026 | POSTER SHOWCASE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@200;300;400;600;700;800&family=Rajdhani:wght@400;600;700&family=Kanit:wght@300;400;600;700;900&family=Electrolize&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-void: #000000;
+            --accent-cyan: #00ffff;
+            --accent-pink: #ff00ff;
+            --accent-green: #00ff00;
+            --text-bright: #e0faff;
+            
+            --font-display: 'Electrolize', sans-serif;
+            --font-thai: 'Kanit', sans-serif;
+            --font-code: 'Rajdhani', monospace;
+
+            --poster-h: 80vh;
+            --poster-w: calc(var(--poster-h) * 0.8);
+            --poster-gap: 160px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text-bright);
+            font-family: var(--font-thai);
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+        }
+
+        /* High-tech Background */
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px; opacity: 0.5; pointer-events: none; z-index: 1;
+        }
+
+        /* Initial Loading Mask */
+        #start-screen {
+            position: fixed; inset: 0; background: var(--bg-void); z-index: 15000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* Showcase Scene */
+        #poster-showcase { 
+            position: absolute; inset: 0; background: #000; overflow: hidden; 
+            display: flex; align-items: center; opacity: 0; visibility: hidden;
+        }
+        #poster-carousel-container { 
+            display: flex; gap: var(--poster-gap); 
+            padding: 0 calc(50vw - (var(--poster-w) / 2)); 
+            height: 100%; align-items: center; 
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
+        .showcase-poster-item { 
+            flex-shrink: 0; height: var(--poster-h); width: var(--poster-w);
+            border: 1px solid rgba(255, 255, 255, 0.1); overflow: visible; background: #05080a; 
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+            position: relative;
+            transform-origin: center center;
+            opacity: 0.1;
+            filter: grayscale(1) blur(12px);
+            transition: border-color 1s ease, box-shadow 1s ease;
+            will-change: transform, opacity, filter;
+        }
+        .showcase-poster-item.is-active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 100px rgba(0, 255, 255, 0.15);
+        }
+
+        .poster-img-container { width: 100%; height: 100%; overflow: hidden; position: relative; }
+        .showcase-poster-item img { width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+        /* Navigation Controls */
+        .nav-btn {
+            position: fixed; top: 50%; transform: translateY(-50%); z-index: 10000;
+            background: rgba(0, 255, 255, 0.03); border: 1px solid rgba(0, 255, 255, 0.2);
+            color: var(--accent-cyan); width: 60px; height: 100px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-code); font-weight: 900; transition: all 0.4s;
+            backdrop-filter: blur(10px); opacity: 0; visibility: hidden;
+        }
+        .nav-btn:hover { background: rgba(0, 255, 255, 0.15); border-color: var(--accent-cyan); box-shadow: 0 0 20px rgba(0, 255, 255, 0.2); }
+        .nav-btn.prev { left: 20px; border-radius: 10px 0 0 10px; }
+        .nav-btn.next { right: 20px; border-radius: 0 10px 10px 0; }
+
+        /* Outro Scene */
+        #outro { 
+            position: absolute; inset: 0; display: flex; overflow: hidden; 
+            background: #000; opacity: 0; visibility: hidden;
+        }
+        .slide-container { display: flex; width: 200vw; height: 100%; will-change: transform; }
+        .slide-item { width: 100vw; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .title-punch {
+            font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 900; color: #fff; font-family: var(--font-display);
+            text-shadow: 3px 3px 0 var(--accent-cyan), 6px 6px 0 var(--accent-pink); margin-bottom: 20px;
+            letter-spacing: 12px;
+        }
+        .subtitle-thai {
+            font-family: var(--font-thai); color: var(--accent-green); font-size: 1.5rem;
+            padding: 12px 30px; border-left: 6px solid var(--accent-green); background: rgba(0, 255, 0, 0.05);
+            display: inline-block;
+        }
+
+        .hud-frame { position: fixed; inset: 0; z-index: 9000; pointer-events: none; padding: 30px; }
+        .hud-line { position: absolute; width: 50px; height: 50px; border: 2px solid var(--accent-cyan); opacity: 0.3; }
+        .tl { top: 30px; left: 30px; border-right: none; border-bottom: none; }
+        .tr { top: 30px; right: 30px; border-left: none; border-bottom: none; }
+        .bl { bottom: 30px; left: 30px; border-right: none; border-top: none; }
+        .br { bottom: 30px; right: 30px; border-left: none; border-top: none; }
+
+        .letterbox { position: fixed; left: 0; width: 100%; height: 7vh; background: #000; z-index: 9500; pointer-events: none; }
+        .lb-t { top: 0; border-bottom: 1px solid rgba(0, 255, 255, 0.1); }
+        .lb-b { bottom: 0; border-top: 1px solid rgba(0, 255, 255, 0.1); }
+
+        #hud-timer { font-family: var(--font-code); color: var(--accent-cyan); font-size: 13px; opacity: 0.6; letter-spacing: 4px; position: fixed; top: 45px; right: 45px; z-index: 10000; }
+        .flash-overlay { position: fixed; inset: 0; background: #fff; opacity: 0; z-index: 11000; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgm-audio" loop crossorigin="anonymous"></audio>
+    <div class="flash-overlay" id="flash"></div>
+
+    <!-- Screen used for initialization -->
+    <div id="start-screen">
+        <div id="init-text" style="font-family:var(--font-code); color:var(--accent-cyan); letter-spacing:15px; font-size: 1.1rem; opacity: 0.8;">CORE_SYSTEM_BOOTING...</div>
+        <div id="progress-bar" style="width: 200px; height: 2px; background: rgba(0, 255, 255, 0.1); margin-top: 20px; position: relative; overflow: hidden;">
+            <div id="progress-fill" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan);"></div>
+        </div>
+    </div>
+
+    <div class="hud-frame">
+        <div class="hud-line tl"></div><div class="hud-line tr"></div>
+        <div class="hud-line bl"></div><div class="hud-line br"></div>
+    </div>
+    
+    <div id="hud-timer">SYS_BOOT</div>
+
+    <button class="nav-btn prev" id="btn-prev" onclick="manualPrev()">◀</button>
+    <button class="nav-btn next" id="btn-next" onclick="manualNext()">▶</button>
+
+    <div class="letterbox lb-t"></div>
+    <div class="letterbox lb-b"></div>
+
+    <div id="camera-rig">
+        <div class="scene" id="poster-showcase">
+            <div id="poster-carousel-container"></div>
+        </div>
+
+        <div class="scene" id="outro">
+            <div class="slide-container" id="slide-container">
+                <div class="slide-item">
+                    <div class="title-punch">COMPLETE</div>
+                    <div class="subtitle-thai">วิทยาลัยเทคนิคอำนาจเจริญ • INNOVATION 2026</div>
+                </div>
+                <div class="slide-item">
+                    <div class="title-punch" style="text-shadow: 3px 3px 0 var(--accent-pink), 6px 6px 0 var(--accent-cyan);">THANK YOU</div>
+                    <div class="subtitle-thai" style="border-color: var(--accent-pink); color: var(--accent-pink);">ขอบคุณสำหรับการรับชม</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const projects = [
+            { id: '01', img: "https://image2url.com/r2/default/files/1770270328767-4f665d1c-74e9-4ae6-b0c2-7f372a21abaf.png" },
+            { id: '02', img: "https://image2url.com/r2/default/files/1770275641316-44e314b2-6431-49d3-aab6-a67617edaa25.png" },
+            { id: '03', img: "https://image2url.com/r2/default/files/1770270350191-9044493b-483f-495c-9c6a-178b44f0df68.png" },
+            { id: '04', img: "https://image2url.com/r2/default/files/1770271583761-fc0daa93-045e-458a-a349-601e469c6c55.png" },
+            { id: '05', img: "https://image2url.com/r2/default/files/1770278426552-d66b5a92-4c38-4729-86bc-76363cf139d8.png" },
+            { id: '06', img: "https://image2url.com/r2/default/files/1770271649022-acfec717-4bb7-4f08-8337-7864cb700977.png" },
+            { id: '07', img: "https://image2url.com/r2/default/files/1770271787974-4eca9685-14c2-4e76-9516-d51acb07036f.png" },
+            { id: '08', img: "https://image2url.com/r2/default/files/1770271685605-e6944e59-794a-4024-851d-2a18ca0a2b49.png" },
+            { id: '09', img: "https://image2url.com/r2/default/files/1770271692165-9669c1da-888a-4388-b716-daa1d105182c.png" },
+            { id: '10', img: "https://image2url.com/r2/default/files/1770278221988-d0665551-c23f-43ec-9d06-9413aa45119a.png" },
+            { id: '11', img: "https://image2url.com/r2/default/files/1770271707904-b2988bfb-bdc3-4a29-b55d-a4cbc52f2396.png" }
+        ];
+
+        const bgmUrl = "https://image2url.com/r2/default/videos/1770188444874-800b8249-5b6e-4bce-b759-cc0a1002957a.mp4";
+        let bgmAudio = document.getElementById('bgm-audio');
+        let masterTl = gsap.timeline({ paused: true });
+        let currentIdx = 0;
+
+        function init() {
+            const posterCarousel = document.getElementById('poster-carousel-container');
+            bgmAudio.src = bgmUrl;
+
+            projects.forEach((p, index) => {
+                const posterDiv = document.createElement('div');
+                posterDiv.className = 'showcase-poster-item';
+                posterDiv.id = `poster-${index}`;
+                posterDiv.innerHTML = `<div class="poster-img-container"><img src="${p.img}"></div>`;
+                posterCarousel.appendChild(posterDiv);
+            });
+
+            // Start system automatically
+            startAutoBoot();
+        }
+
+        function startAutoBoot() {
+            gsap.to("#progress-fill", { 
+                width: "100%", 
+                duration: 2, 
+                ease: "power2.inOut", 
+                onComplete: () => {
+                    document.getElementById('init-text').innerText = "SYSTEM_READY";
+                    gsap.to("#start-screen", { 
+                        opacity: 0, 
+                        duration: 1, 
+                        delay: 0.5, 
+                        onComplete: () => {
+                            document.getElementById('start-screen').remove();
+                            // Note: Audio might be blocked without user interaction, 
+                            // but we trigger it here.
+                            bgmAudio.volume = 0;
+                            bgmAudio.play().catch(() => console.log("Audio waiting for interaction"));
+                            gsap.to(bgmAudio, { volume: 0.45, duration: 3 });
+                            
+                            // Show nav buttons
+                            gsap.to(".nav-btn", { autoAlpha: 1, duration: 1 });
+                            
+                            buildTimeline();
+                            masterTl.play();
+                        }
+                    });
+                }
+            });
+        }
+
+        function buildTimeline() {
+            const posterShowcase = document.getElementById('poster-showcase');
+            const posterContainer = document.getElementById('poster-carousel-container');
+            const outro = document.getElementById('outro');
+            const slideContainer = document.getElementById('slide-container');
+
+            masterTl.to(posterShowcase, { autoAlpha: 1, duration: 1 });
+
+            projects.forEach((_, i) => {
+                const labelName = `project_${i}`;
+                masterTl.addLabel(labelName);
+
+                const posterItem = document.getElementById(`poster-${i}`);
+                const posterWidth = posterItem.offsetWidth;
+                const gap = 160; 
+                const targetX = -( (posterWidth + gap) * i );
+
+                // Transition Logic
+                masterTl.add(() => { currentIdx = i; }, "-=0.1");
+
+                // Slide & Zoom Combined for Ultra Smooth Flow
+                masterTl.to(posterContainer, { 
+                    x: targetX, 
+                    duration: 2.0, 
+                    ease: "expo.inOut",
+                    force3D: true
+                });
+
+                masterTl.add(() => {
+                    document.querySelectorAll('.showcase-poster-item').forEach(el => el.classList.remove('is-active'));
+                    posterItem.classList.add('is-active');
+                }, "-=1.5");
+
+                masterTl.fromTo(posterItem, 
+                    { scale: 1.4, filter: "blur(30px) brightness(1.8)", opacity: 0, z: 150 },
+                    { scale: 1, filter: "blur(0px) brightness(1)", opacity: 1, z: 0, duration: 2.2, ease: "power2.out" },
+                    "-=1.7" 
+                );
+
+                masterTl.to("#flash", { opacity: 0.1, duration: 0.15 }, "-=1.4");
+                masterTl.to("#flash", { opacity: 0, duration: 1.2 });
+
+                // Reading Hold
+                masterTl.to({}, { duration: 3.0 }); 
+
+                if (i < projects.length - 1) {
+                    masterTl.add(() => {
+                        gsap.to(posterItem, { 
+                            opacity: 0.15, 
+                            filter: "blur(12px) grayscale(1)", 
+                            duration: 2.0, 
+                            ease: "power2.inOut" 
+                        });
+                        posterItem.classList.remove('is-active');
+                    }, "+=0.1");
+                }
+            });
+
+            // End Sequence
+            masterTl.addLabel("showcase_end");
+            masterTl.to(posterShowcase, { autoAlpha: 0, duration: 1.5, ease: "power2.inOut" });
+            
+            masterTl.addLabel("outro_start");
+            masterTl.to(outro, { autoAlpha: 1, duration: 1.2 }, "-=0.5");
+            masterTl.to({}, { duration: 3 }); 
+            
+            masterTl.to(slideContainer, { 
+                x: "-100vw", 
+                duration: 2.5, 
+                ease: "expo.inOut" 
+            });
+            
+            masterTl.to({}, { duration: 6 });
+
+            masterTl.eventCallback("onUpdate", () => {
+                const time = masterTl.time();
+                document.getElementById('hud-timer').innerText = `TS_${Math.floor(time).toString().padStart(4, '0')}:SYNC`;
+            });
+
+            masterTl.eventCallback("onComplete", () => { masterTl.restart(); });
+        }
+
+        // Manual Navigation
+        function manualNext() {
+            if(currentIdx < projects.length - 1) {
+                masterTl.play(`project_${currentIdx + 1}`);
+            } else {
+                masterTl.play("showcase_end");
+            }
+        }
+
+        function manualPrev() {
+            if(currentIdx > 0) {
+                masterTl.play(`project_${currentIdx - 1}`);
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
