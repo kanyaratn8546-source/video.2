@@ -8,16 +8,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@200;400;700&family=Rajdhani:wght@500;700&family=Kanit:wght@300;600;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #000000;
+            --bg-dark: #020202;
             --accent-cyan: #00f2ff;
-            --poster-h: 75vh;
+            --poster-h: 70vh;
             --poster-w: calc(var(--poster-h) * 0.7);
+            --transition-speed: 3s; /* ปรับความเร็วพื้นฐานให้ช้าลง */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg-dark); color: white; font-family: 'Kanit', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+        body { 
+            background: var(--bg-dark); 
+            color: white; 
+            font-family: 'Kanit', sans-serif; 
+            overflow: hidden; 
+            width: 100vw; 
+            height: 100vh; 
+        }
 
-        /* หน้าจอเริ่มต้น */
+        /* Overlay ตกแต่งขอบจอให้ดู Cinematic */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 20;
+        }
+
         #start-screen {
             position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -29,47 +46,60 @@
         }
 
         #poster-track {
-            display: flex; gap: 80px; padding: 0 50vw; will-change: transform;
+            display: flex; gap: 120px; padding: 0 50vw; will-change: transform;
         }
 
         .poster-card {
             flex-shrink: 0; width: var(--poster-w); height: var(--poster-h);
-            background: #111; border: 2px solid rgba(255,255,255,0.1);
-            position: relative; transition: border-color 0.8s, box-shadow 0.8s;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05);
+            position: relative; 
+            box-shadow: 0 20px 60px rgba(0,0,0,1);
+            filter: grayscale(0.5);
+            transition: border-color 1.5s, box-shadow 1.5s;
         }
 
         .poster-card.is-active {
             border-color: var(--accent-cyan);
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.4);
+            box-shadow: 0 0 70px rgba(0, 242, 255, 0.25);
+            filter: grayscale(0);
             z-index: 10;
         }
 
-        .poster-card img { width: 100%; height: 100%; object-fit: contain; }
+        .poster-card img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            display: block;
+        }
 
         /* ปุ่มควบคุมแบบใส */
         .nav-control {
-            position: fixed; top: 0; bottom: 0; width: 12vw;
+            position: fixed; top: 0; bottom: 0; width: 15vw;
             display: flex; align-items: center; justify-content: center;
             z-index: 100; cursor: pointer; background: transparent;
-            border: none; outline: none; transition: background 0.4s;
+            border: none; outline: none; transition: background 0.6s;
         }
-        .nav-control:hover { background: rgba(0, 242, 255, 0.03); }
-        .nav-control svg { width: 45px; fill: white; opacity: 0.15; transition: 0.3s; }
-        .nav-control:hover svg { opacity: 0.8; fill: var(--accent-cyan); scale: 1.2; }
+        .nav-control:hover { background: rgba(0, 242, 255, 0.02); }
+        .nav-control svg { width: 50px; fill: white; opacity: 0.1; transition: 0.5s; }
+        .nav-control:hover svg { opacity: 0.6; fill: var(--accent-cyan); transform: scale(1.1); }
         .prev-btn { left: 0; }
         .next-btn { right: 0; }
 
         .hud-ui {
-            position: fixed; top: 40px; left: 40px; font-family: 'Rajdhani';
-            color: var(--accent-cyan); letter-spacing: 3px; font-size: 14px; z-index: 50;
-            text-transform: uppercase;
+            position: fixed; top: 50px; left: 50px; font-family: 'Rajdhani';
+            color: var(--accent-cyan); letter-spacing: 5px; font-size: 13px; z-index: 50;
+            text-transform: uppercase; opacity: 0.7;
         }
 
         #outro {
             position: fixed; inset: 0; background: black; z-index: 500;
             display: none; align-items: center; justify-content: center; flex-direction: column;
             opacity: 0;
+        }
+
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--accent-cyan); opacity: 0.3;
+            pointer-events: none; z-index: 15;
+            display: none;
         }
     </style>
 </head>
@@ -78,9 +108,9 @@
     <audio id="bgm" loop crossorigin="anonymous"></audio>
     
     <div id="start-screen">
-        <div style="font-family: 'Rajdhani'; color: var(--accent-cyan); margin-bottom: 20px; letter-spacing: 8px; font-size: 1.2rem;">SYSTEM_READY</div>
-        <button onclick="bootSystem()" style="padding: 12px 40px; background: none; border: 1px solid var(--accent-cyan); color: white; cursor: pointer; font-family: 'Kanit'; letter-spacing: 2px; transition: 0.3s;">
-            START AUTOMATIC SHOWCASE
+        <div style="font-family: 'Rajdhani'; color: var(--accent-cyan); margin-bottom: 30px; letter-spacing: 10px; font-size: 1rem;">INITIATING_SYSTEM_V.2.0</div>
+        <button onclick="bootSystem()" style="padding: 15px 50px; background: none; border: 1px solid rgba(0, 242, 255, 0.5); color: white; cursor: pointer; font-family: 'Kanit'; letter-spacing: 3px; font-weight: 300; transition: 0.5s; overflow: hidden; position: relative;">
+            <span style="position: relative; z-index: 2;">START CINEMATIC JOURNEY</span>
         </button>
     </div>
 
@@ -91,16 +121,17 @@
         <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
     </button>
 
-    <div class="hud-ui" id="hud">STATUS: IDLE</div>
+    <div class="hud-ui" id="hud">STATUS: STANDBY</div>
 
     <div id="viewport">
         <div id="poster-track"></div>
+        <div class="scan-line" id="scanner"></div>
     </div>
 
     <div id="outro">
-        <h1 style="font-size: 4.5rem; font-family: 'Rajdhani'; color: white; letter-spacing: 15px;">FINISH</h1>
-        <div style="width: 100px; height: 2px; background: var(--accent-cyan); margin: 20px 0;"></div>
-        <p style="color: var(--accent-cyan); letter-spacing: 5px; font-size: 1.2rem;">วิทยาลัยเทคนิคอำนาจเจริญ</p>
+        <h1 style="font-size: 4rem; font-family: 'Rajdhani'; color: white; letter-spacing: 20px; font-weight: 700;">THANK YOU</h1>
+        <div style="width: 150px; height: 1px; background: var(--accent-cyan); margin: 30px 0; opacity: 0.5;"></div>
+        <p style="color: var(--accent-cyan); letter-spacing: 6px; font-size: 1.1rem; font-weight: 300;">วิทยาลัยเทคนิคอำนาจเจริญ</p>
     </div>
 
     <script>
@@ -124,23 +155,29 @@
         let mainTl;
         let autoResumeTimer;
 
-        // สร้าง Card โปสเตอร์ทั้งหมด
+        // Initialize Cards
         posters.forEach((url, i) => {
             const card = document.createElement('div');
             card.className = 'poster-card';
             card.id = `card-${i}`;
-            card.innerHTML = `<img src="${url}">`;
+            card.innerHTML = `<img src="${url}" loading="lazy">`;
             track.appendChild(card);
         });
 
         function bootSystem() {
-            document.getElementById('start-screen').remove();
-            gsap.to("#viewport", { opacity: 1, duration: 2 });
+            gsap.to('#start-screen', { 
+                opacity: 0, 
+                duration: 2, 
+                onComplete: () => document.getElementById('start-screen').remove() 
+            });
+            
+            gsap.to("#viewport", { opacity: 1, duration: 3, ease: "power2.inOut" });
             
             const bgm = document.getElementById('bgm');
             bgm.src = audioUrl;
-            bgm.volume = 0.4;
+            bgm.volume = 0;
             bgm.play().catch(() => {});
+            gsap.to(bgm, { volume: 0.35, duration: 4 });
 
             startAutoCycle();
         }
@@ -149,35 +186,38 @@
             if (mainTl) mainTl.kill();
             mainTl = gsap.timeline();
 
-            // STEP 1: CINEMATIC OVERVIEW (ช้าลงพิเศษ)
-            document.getElementById('hud').innerText = "STATUS: SCANNING_GALLERY_SLOW";
+            // STEP 1: SLOW CINEMATIC OVERVIEW (ปรับให้ช้าและนุ่มนวลมาก)
+            document.getElementById('hud').innerText = "STATUS: INITIAL_SCANNING_GALLERY";
             
-            // เลื่อนไปจนสุด (15 วินาที เพื่อความละเมียดละไม)
+            // กวาดกล้องไปจนสุดทาง (ใช้เวลา 25 วินาทีเพื่อให้ดูสบายตา)
             mainTl.to(track, { 
                 x: () => -(track.scrollWidth - window.innerWidth), 
-                duration: 15, 
-                ease: "power1.inOut" 
+                duration: 25, 
+                ease: "none" 
             });
             
-            // รอที่จุดจบ 1 วินาทีแล้วค่อยดึงกลับมาช้าๆ
-            mainTl.to(track, { x: 0, duration: 4, ease: "expo.inOut" }, "+=1");
+            // พักสายตา 2 วินาที
+            mainTl.to({}, { duration: 2 });
 
-            // STEP 2: AUTO FOCUS EACH POSTER
+            // ดึงกล้องกลับมาที่จุดเริ่มต้น (ใช้เวลา 6 วินาทีแบบค่อยเป็นค่อยไป)
+            mainTl.to(track, { x: 0, duration: 6, ease: "power2.inOut" });
+
+            // STEP 2: FOCUS INDIVIDUAL POSTERS
             posters.forEach((_, i) => {
                 mainTl.add(() => focusOn(i), "+=0.5");
-                mainTl.to({}, { duration: 5 }); // แต่ละใบโชว์ 5 วินาที
+                mainTl.to({}, { duration: 8 }); // เพิ่มเวลาดูแต่ละใบเป็น 8 วินาที
             });
 
-            // STEP 3: FINISH & RESTART
+            // STEP 3: OUTRO
             mainTl.add(() => {
                 document.getElementById('outro').style.display = 'flex';
-                gsap.to("#outro", { opacity: 1, duration: 1.5 });
+                gsap.to("#outro", { opacity: 1, duration: 2.5 });
             });
-            mainTl.to({}, { duration: 5 });
+            mainTl.to({}, { duration: 6 });
             mainTl.add(() => {
-                gsap.to("#outro", { opacity: 0, duration: 1, onComplete: () => {
+                gsap.to("#outro", { opacity: 0, duration: 1.5, onComplete: () => {
                     document.getElementById('outro').style.display = 'none';
-                    startAutoCycle(); // วนลูปกลับไปเริ่มใหม่
+                    startAutoCycle();
                 }});
             });
         }
@@ -187,28 +227,42 @@
             currentIdx = index;
 
             const cardWidth = document.querySelector('.poster-card').offsetWidth;
-            const gap = 80;
+            const gap = 120;
             const targetX = -( (cardWidth + gap) * index );
 
-            document.getElementById('hud').innerText = `SHOWCASING: ${index + 1} OF ${posters.length}`;
+            document.getElementById('hud').innerText = `VIEWING: ${index + 1} / ${posters.length} [AUTO_PILOT]`;
 
-            // เลื่อนกล้อง
-            gsap.to(track, { x: targetX, duration: 2, ease: "expo.out" });
+            // เลื่อนกล้องช้าลง (duration 3.5s) และนุ่มนวลกว่าเดิม
+            gsap.to(track, { 
+                x: targetX, 
+                duration: 3.5, 
+                ease: "power3.inOut" 
+            });
 
-            // ปรับสถานะการมองเห็น (ชัดทุกใบ แต่ใบที่เลือกจะเด่นขึ้น)
+            // ปรับ Visuals ของการเลือกภาพ
             document.querySelectorAll('.poster-card').forEach((el, i) => {
                 if (i === index) {
                     el.classList.add('is-active');
-                    gsap.to(el, { scale: 1.1, opacity: 1, duration: 1 });
+                    gsap.to(el, { 
+                        scale: 1.15, 
+                        opacity: 1, 
+                        duration: 2.5,
+                        ease: "power2.out"
+                    });
                 } else {
                     el.classList.remove('is-active');
-                    gsap.to(el, { scale: 0.9, opacity: 0.5, duration: 1 });
+                    gsap.to(el, { 
+                        scale: 0.85, 
+                        opacity: 0.3, 
+                        duration: 2.5,
+                        ease: "power2.out"
+                    });
                 }
             });
         }
 
         function manualStep(direction) {
-            // หยุดระบบออโต้ชั่วคราว
+            // หยุดระบบออโต้
             mainTl.pause();
             clearTimeout(autoResumeTimer);
 
@@ -216,13 +270,21 @@
             if (target < 0) target = 0;
             if (target >= posters.length) target = posters.length - 1;
 
+            document.getElementById('hud').innerText = `MANUAL_CONTROL: IMAGE_${target + 1}`;
             focusOn(target);
 
-            // หากไม่มีการกดปุ่มภายใน 8 วินาที จะรันออโต้ต่อจากจุดนี้
+            // หากไม่มีการควบคุม 10 วินาที จะรันออโต้ต่อ
             autoResumeTimer = setTimeout(() => {
                 mainTl.play();
-            }, 8000);
+            }, 10000);
         }
+
+        // เพิ่มการเลื่อนด้วยเมาส์ (Mouse Wheel) แบบเบาๆ
+        window.addEventListener('wheel', (e) => {
+            if (e.deltaY > 0) manualStep(1);
+            else if (e.deltaY < 0) manualStep(-1);
+        }, { passive: true });
+
     </script>
 </body>
 </html>
